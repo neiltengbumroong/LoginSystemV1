@@ -1,4 +1,4 @@
-package com.server;
+package main.java;
 
 import java.io.*;
 import java.util.*;
