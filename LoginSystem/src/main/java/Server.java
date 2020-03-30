@@ -6,7 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 
 
-import org.json.simple.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class Server {
   HashMap<String, User> users; //hashmap listed by username and User object
@@ -57,7 +58,7 @@ public class Server {
 
   public void loadUsersJSON(File file) {}
 
-  public void writeUsersJSON(String file) throws IOException {
+  public boolean writeUsersJSON(String fileToWrite) throws IOException {
     // create JSON array to put users in
     JSONArray userList = new JSONArray();
 
@@ -68,27 +69,47 @@ public class Server {
       userList.add(userToWrite);
     }
 
+    BufferedWriter bw = null;
+
     // attempt to print userList to file, wrap inside try/catch for exceptions
     try {
-      FileWriter fileWriter = new FileWriter(file);
-      PrintWriter printWriter = new PrintWriter(fileWriter);
-
-      printWriter.write(userList.toJSONString());
-      printWriter.close();
+      File file = new File(fileToWrite);
+      FileWriter fw = new FileWriter(file);
+      bw = new BufferedWriter(fw);
+      bw.write(userList.toString());
     }
     // catch and print exceptions
     catch (IOException e) {
       System.out.println("Error writing to file!");
       e.printStackTrace();
+      return false;
     }
+    // finally close the writer
+    finally {
+      try {
+        bw.close();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    return true;
 
   }
 
-
+  @SuppressWarnings("unchecked")
   public static void main(String[] args) {
     Server server = new Server();
+    System.out.println("Hello");
 
-    //server.createUser(first, last, user, password, birthday);
-    //server.writeUsersJSON("~/Desktop/LoginSystem/UserData.json");
+    System.out.println(server.createUser("Neil", "Tengbumroong", "flackoneil", "Chicken1889", "09171999"));
+
+    try {
+      server.writeUsersJSON("./Users.txt");
+    }
+    catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 }
