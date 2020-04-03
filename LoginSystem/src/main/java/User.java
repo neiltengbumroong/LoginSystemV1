@@ -85,11 +85,7 @@ public class User {
     currUser.put("birthday", this.birthday);
     currUser.put("Last login", this.lastlogin);
 
-    // wrap object inside "user" wrapper object for printing
-    JSONObject currUserWrapper = new JSONObject();
-    currUserWrapper.put("user", currUser);
-
-    return currUserWrapper;
+    return currUser;
   }
 
 
