@@ -4,7 +4,6 @@ A simple console-based program written in Java and built with Maven, designed to
 Key features of the program include: <br />
 * user login and user creation capabilities
 * loading of existing users into program through files in JSON format
-* password recovery system
 * password encryption through SHA-256 hashing pattern
 * storage of user information in JSON format in external file, including: 
   * first and last name
