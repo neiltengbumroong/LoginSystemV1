@@ -17,7 +17,7 @@ import org.json.simple.JSONObject;
 
 public class Server {
   HashMap<String, User> users; //hashmap listed by username and User object
-  int numUsers;
+  boolean write = false;
   static Validator validator;
 
 
@@ -137,7 +137,11 @@ public class Server {
 
     Scanner scanner = new Scanner(System.in);
     String input = scanner.next();
+
+    // keep looping until e or exit is typed
     while (!input.equals("e") && !input.equals("exit")) {
+      write = true;
+      // handles user creation
       if (input.equals("c")) {
         System.out.print("Please enter your first name: ");
         String first = "";
@@ -199,6 +203,8 @@ public class Server {
                             "l - login" + "\n" +
                             "e - exit");
       }
+
+      // handles user login
       else if (input.equals("l")) {
         System.out.print("Username: ");
         String username = scanner.next();
@@ -211,18 +217,21 @@ public class Server {
                             "l - login" + "\n" +
                             "e - exit");
       }
-
       input = scanner.next();
     }
 
-
-
-
-    try {
-      server.writeUsersJSON("./classes/data/Users.json");
+    // terminate on early exit
+    if (input.equals("e")) {
+      return;
     }
-    catch (IOException e) {
-      e.printStackTrace();
+
+    if (write) {}
+      try {
+        server.writeUsersJSON("./classes/data/Users.json");
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 }
