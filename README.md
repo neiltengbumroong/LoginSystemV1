@@ -16,7 +16,7 @@ Key features of the program include: <br />
 <br/>
 
 ## How to Run ##
-* Clone or fork the repository containing the source files <br/>
+* Clone or fork the repository containing the source files. <br/>
 * Use the following command to compile the program:
 ```
 mvn clean package
@@ -27,12 +27,12 @@ java -cp java-project-1.0-SNAPSHOT-jar-with-dependencies.jar main.java.Server
 ```
 * Optional Flags
 ```
--ls: load users from sample JSON file
-- lu: load from your own JSON file.
-
-JSON file MUST contain the following fields on one line (token) and password must be in SHA-256 format:
-{"birthday":"09-17-1999","firstName":"Neil","lastName":"Tengbumroong","lastLogin":"2020\/04\/07 13:16:34","password":"811eb81b9d11d65a36c53c3ebdb738ee303403cb79d781ccf4b40764e0a9d12a","userName":"neilteng"}
+-ls: load users from sample JSON file.
+-lu: load from your own JSON file.
 ```
+If loading existing file, JSON file MUST contain the following fields on one line (token) and password must be in SHA-256 format:
+{"birthday":"09-17-1999","firstName":"Neil","lastName":"Tengbumroong","lastLogin":"2020\/04\/07 13:16:34","password":"811eb81b9d11d65a36c53c3ebdb738ee303403cb79d781ccf4b40764e0a9d12a","userName":"neilteng"}
+
 * Follow command line instructions to interact with program.
 
 
