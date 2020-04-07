@@ -25,6 +25,7 @@ public class Server {
   static Validator validator;
 
 
+  // standard constructor for server
   public Server() {
     users = new HashMap<String, User>();
     usernames = new HashSet<String>();
@@ -43,6 +44,7 @@ public class Server {
     return hex;
   }
 
+  // method to return the current time (used for loggin last login)
   public static String getTime() {
     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     LocalDateTime now = LocalDateTime.now();
@@ -63,7 +65,6 @@ public class Server {
 
       // check hashed password with that stored in User in hashmap
       if (passAttempt.equals(this.users.get(user).getPasswordHash())) {
-        System.out.println("Login successful!");
         this.users.get(user).setLastLogin(getTime());
         return true;
       }
@@ -120,9 +121,17 @@ public class Server {
         currLine = scanner.nextLine();
         Object obj = parser.parse(currLine);
         JSONObject jsonObject = (JSONObject) obj;
+
         String first = (String) jsonObject.get("firstName");
+
         String last = (String) jsonObject.get("lastName");
         String user = (String) jsonObject.get("userName");
+        // early break if username is already existing
+        if (users.containsKey(user)) {
+          if (usernames.contains(user.toLowerCase())) {
+            continue;
+          }
+        }
         String password = (String) jsonObject.get("password");
         String birthday = (String) jsonObject.get("birthday");
         String lastLogin = (String) jsonObject.get("lastLogin");
@@ -174,6 +183,7 @@ public class Server {
     System.out.println("Welcome! What would you like to do?" + "\n" +
                         "c - create account" + "\n" +
                         "l - login" + "\n" +
+                        "d - delete account" + "\n" +
                         "e - exit");
 
     Scanner scanner = new Scanner(System.in);
@@ -262,6 +272,7 @@ public class Server {
         System.out.println("What else would you like to do?" + "\n" +
                             "c - create account" + "\n" +
                             "l - login" + "\n" +
+                            "d - delete account" + "\n" +
                             "e - exit");
       }
 
@@ -273,10 +284,41 @@ public class Server {
         String password = scanner.next();
 
         this.checkValidCredentials(username, password);
+        System.out.println("Login successful!");
         System.out.println("What else would you like to do?" + "\n" +
                             "c - create account" + "\n" +
                             "l - login" + "\n" +
+                            "d - delete account" + "\n" +
                             "e - exit");
+      }
+
+      // handles user login
+      else if (input.equals("d")) {
+        System.out.print("Username: ");
+        String username = scanner.next();
+        System.out.print("Password: ");
+        String password = scanner.next();
+
+        this.checkValidCredentials(username, password);
+        this.deleteUser(username);
+        System.out.println("What else would you like to do?" + "\n" +
+                            "c - create account" + "\n" +
+                            "l - login" + "\n" +
+                            "d - delete account" + "\n" +
+                            "e - exit");
+      }
+
+      // handle help flag
+      else if (input.equals("h")) {
+        System.out.println("c - create account. Terminal will prompt for user information, such as creating username and password.");
+        System.out.println("l - login. Terminal will prompt for user and password, and will verify matching user to password hash.");
+        System.out.println("d - delete account. Terminal will prompt for username and password to delete.");
+        System.out.println("What else would you like to do?" + "\n" +
+                            "c - create account" + "\n" +
+                            "l - login" + "\n" +
+                            "d - delete account" + "\n" +
+                            "e - exit");
+
       }
       input = scanner.next();
       // terminate on early exit
@@ -289,9 +331,28 @@ public class Server {
   @SuppressWarnings("unchecked")
   public static void main(String[] args) throws IOException {
     Server server = new Server();
+    // handle command line flags
+    int i = 0;
+    String arg = "";
+    while (i < args.length && args[i].startsWith("-")) {
+      arg = args[i++];
+
+      // parse flag for loading own users
+      if (arg.equals("-lu")) {
+        server.loadUsersJSON("../src/data/MyUsers.json");
+        server.write = true;
+      }
+
+      // parse flag for loading sample users
+      if (arg.equals("-ls")) {
+        server.loadUsersJSON("../src/data/SampleUsers.json");
+        server.write = true;
+      }
+    }
+
+    // load the existing users and run program
     server.loadUsersJSON("../src/data/Users.json");
     server.executeProgram();
-    server.deleteUser("jennasabile");
 
     // if something needs to be written, write to file
     if (server.write) {
