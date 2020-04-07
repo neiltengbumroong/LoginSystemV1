@@ -32,12 +32,13 @@ java -cp java-project-1.0-SNAPSHOT-jar-with-dependencies.jar main.java.Server
 
 JSON file MUST contain the following fields on one line (token) and password must be in SHA-256 format:
 {"birthday":"09-17-1999","firstName":"Neil","lastName":"Tengbumroong","lastLogin":"2020\/04\/07 13:16:34","password":"811eb81b9d11d65a36c53c3ebdb738ee303403cb79d781ccf4b40764e0a9d12a","userName":"neilteng"}
-'''
+```
 * Follow command line instructions to interact with program.
 
 
 ## How to Use ##
 * c - create account. Terminal will prompt for user information, such as creating username and password.
 * l - login. Terminal will prompt for user and password, and will verify matching user to password hash.
+* d - delete account. Terminal will prompt for user and password, and will delete the account if they match.
 * h - help. Displays a usage screen.
 * e - exit. Exits the program.
