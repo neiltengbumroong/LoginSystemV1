@@ -17,6 +17,10 @@ Key features of the program include: <br />
 
 ## How to Run ##
 * Clone or fork the repository containing the source files <br/>
+* Use the following command to compile the program:
+```
+mvn clean package
+```
 * Use the following command to run the program:
 ```
 java -cp java-project-1.0-SNAPSHOT-jar-with-dependencies.jar main.java.Server
