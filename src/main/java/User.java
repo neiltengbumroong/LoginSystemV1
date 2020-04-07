@@ -24,12 +24,23 @@ public class User {
     this.firstname = first;
     this.lastname = last;
     this.username = user;
-    //this.userID =
     this.password = pass;
     this.hasAccess = false;
     this.birthday = birthday;
     this.lastlogin = "";
   }
+
+  public User(String first, String last, String user, String pass, String birthday, String lastLogin) {
+    this.firstname = first;
+    this.lastname = last;
+    this.username = user;
+    this.password = pass;
+    this.hasAccess = false;
+    this.birthday = birthday;
+    this.lastlogin = lastLogin;
+  }
+
+
 
   /* ---------- Getters --------------- */
   public String getFirstName() {
@@ -83,7 +94,7 @@ public class User {
     currUser.put("lastName", this.lastname);
     currUser.put("password", this.password);
     currUser.put("birthday", this.birthday);
-    currUser.put("Last login", this.lastlogin);
+    currUser.put("lastLogin", this.lastlogin);
 
     return currUser;
   }

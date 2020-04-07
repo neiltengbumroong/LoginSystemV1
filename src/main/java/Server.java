@@ -14,17 +14,21 @@ import java.util.regex.*;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class Server {
   HashMap<String, User> users; //hashmap listed by username and User object
+  HashSet<String> usernames; // hashset containing lowercase users
   boolean write = false;
   static Validator validator;
 
 
   public Server() {
     users = new HashMap<String, User>();
+    usernames = new HashSet<String>();
     validator = new Validator();
-    numUsers = 0;
   }
 
   public static String computeHash(String pass) throws NoSuchAlgorithmException {
@@ -37,6 +41,13 @@ public class Server {
     hex = String.format("%064x", new BigInteger(1, digest));
 
     return hex;
+  }
+
+  public static String getTime() {
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    LocalDateTime now = LocalDateTime.now();
+    String currTime = dtf.format(now);
+    return currTime;
   }
 
   public boolean checkValidCredentials(String user, String pass) {
@@ -53,6 +64,7 @@ public class Server {
       // check hashed password with that stored in User in hashmap
       if (passAttempt.equals(this.users.get(user).getPasswordHash())) {
         System.out.println("Login successful!");
+        this.users.get(user).setLastLogin(getTime());
         return true;
       }
     }
@@ -61,15 +73,6 @@ public class Server {
 
 
   public boolean createUser(String first, String last, String username, String password, String birthday) {
-    // check that current username doesn't exist
-    if (this.users.containsKey(username)) {
-      return false;
-    }
-    // collect current time for first login
-    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-    LocalDateTime now = LocalDateTime.now();
-    String currTime = dtf.format(now);
-
     try {
       password = computeHash(password);
     }
@@ -79,15 +82,58 @@ public class Server {
 
     // create and add user to hashmap with appropriate elements
     User newUser = new User(first, last, username, password, birthday);
-    newUser.setLastLogin(currTime);
+    newUser.setLastLogin(getTime());
     this.users.put(newUser.getUserName(), newUser);
-    this.numUsers = this.numUsers + 1;
+    this.usernames.add(username.toLowerCase());
     return true;
   }
 
-  //public boolean deleteUser(String username) {}
+  public boolean createUser(String first, String last, String username, String password, String birthday, String lastLogin) {
+    // no need to calculate password hash as password is already hashed
+    // create and add user to hashmap with appropriate elements
+    User newUser = new User(first, last, username, password, birthday, lastLogin);
+    this.users.put(newUser.getUserName(), newUser);
+    this.usernames.add(username.toLowerCase());
+    return true;
+  }
 
-  public void loadUsersJSON(File file) {}
+  public boolean deleteUser(String username) {
+    if (users.containsKey(username)) {
+      users.remove(username);
+      if (usernames.contains(username.toLowerCase())) {
+        usernames.remove(username.toLowerCase());
+        this.write = true;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public void loadUsersJSON(String fileToLoad) throws IOException {
+    File file = new File(fileToLoad);
+    Scanner scanner = new Scanner(file);
+    String currLine = "";
+    JSONParser parser = new JSONParser();
+
+    while (scanner.hasNextLine()) {
+      try {
+        currLine = scanner.nextLine();
+        Object obj = parser.parse(currLine);
+        JSONObject jsonObject = (JSONObject) obj;
+        String first = (String) jsonObject.get("firstName");
+        String last = (String) jsonObject.get("lastName");
+        String user = (String) jsonObject.get("userName");
+        String password = (String) jsonObject.get("password");
+        String birthday = (String) jsonObject.get("birthday");
+        String lastLogin = (String) jsonObject.get("lastLogin");
+
+        this.createUser(first, last, user, password, birthday, lastLogin);
+      }
+      catch (ParseException pe) {
+        pe.printStackTrace();
+      }
+    }
+  }
 
   public boolean writeUsersJSON(String fileToWrite) throws IOException {
     BufferedWriter bw = null;
@@ -124,12 +170,7 @@ public class Server {
     return true;
   }
 
-  @SuppressWarnings("unchecked")
-  public static void main(String[] args) {
-    Server server = new Server();
-    server.createUser("Neil", "Tengbumroong", "flackoneil", "Chicken1889", "09171999");
-
-
+  public void executeProgram() {
     System.out.println("Welcome! What would you like to do?" + "\n" +
                         "c - create account" + "\n" +
                         "l - login" + "\n" +
@@ -140,9 +181,11 @@ public class Server {
 
     // keep looping until e or exit is typed
     while (!input.equals("e") && !input.equals("exit")) {
-      write = true;
+      this.write = true;
       // handles user creation
       if (input.equals("c")) {
+
+        // handle first name
         System.out.print("Please enter your first name: ");
         String first = "";
         while (true) {
@@ -151,9 +194,10 @@ public class Server {
             break;
           }
           System.out.println("Invalid name!");
+          System.out.print("Please enter your first name: ");
         }
 
-
+        // handle last name
         System.out.print("Please enter your last name: ");
         String last = "";
         while (true) {
@@ -162,18 +206,29 @@ public class Server {
             break;
           }
           System.out.println("Invalid name!");
+          System.out.print("Please enter your last name: ");
         }
 
+        // handle username
         System.out.print("Please choose your username: ");
         String username = "";
         while (true) {
           username = scanner.next();
-          if (validator.validateUsername(username)) {
+          String tempChecker = username.toLowerCase();
+          if (this.usernames.contains(tempChecker) || (this.users.containsKey(username)))  {
+            System.out.println("Username already taken! Please choose another");
+            System.out.print("Please choose your username: ");
+            continue;
+          }
+          else if (validator.validateUsername(username)) {
             break;
           }
-          System.out.println("Username must be between 4 and 13 characters");
+          else {
+            System.out.println("Username must be between 4 and 13 characters");
+          }
         }
 
+        // handle password
         System.out.print("Please choose a password: ");
         String password = "";
         while (true) {
@@ -182,22 +237,28 @@ public class Server {
             break;
           }
           System.out.println("Password must contain at least one uppercase, one lowercase, one digit, and be between 6 and 20 characters");
+          System.out.print("Please choose a password: ");
         }
 
+        // handle birthday
         System.out.print("Please enter your birthday (mm-dd-yyyy): ");
         String birthday = "";
         while (true) {
           birthday = scanner.next();
-          if (validator.validateName(birthday)) {
+          if (validator.validateBirthday(birthday)) {
             break;
           }
           System.out.println("Invalid birthday! Birthday must be in mm-dd-yyyy format");
+          System.out.print("Please enter your birthday (mm-dd-yyyy): ");
         }
 
-        if (server.createUser(first, last, username, password, birthday)) {
+        // create the final user
+        if (this.createUser(first, last, username, password, birthday)) {
           System.out.println("User created succesfully!");
         }
 
+
+        // print prompts again
         System.out.println("What else would you like to do?" + "\n" +
                             "c - create account" + "\n" +
                             "l - login" + "\n" +
@@ -211,27 +272,36 @@ public class Server {
         System.out.print("Password: ");
         String password = scanner.next();
 
-        server.checkValidCredentials(username, password);
+        this.checkValidCredentials(username, password);
         System.out.println("What else would you like to do?" + "\n" +
                             "c - create account" + "\n" +
                             "l - login" + "\n" +
                             "e - exit");
       }
       input = scanner.next();
+      // terminate on early exit
+      if (input.equals("e")) {
+        break;
+      }
     }
+  }
 
-    // terminate on early exit
-    if (input.equals("e")) {
-      return;
-    }
+  @SuppressWarnings("unchecked")
+  public static void main(String[] args) throws IOException {
+    Server server = new Server();
+    server.loadUsersJSON("../src/data/Users.json");
+    server.executeProgram();
+    server.deleteUser("jennasabile");
 
-    if (write) {}
+    // if something needs to be written, write to file
+    if (server.write) {
       try {
-        server.writeUsersJSON("./classes/data/Users.json");
+        server.writeUsersJSON("../src/data/Users.json");
       }
       catch (IOException e) {
         e.printStackTrace();
       }
     }
   }
+
 }
