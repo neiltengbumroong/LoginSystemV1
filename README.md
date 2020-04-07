@@ -13,7 +13,7 @@ Key features of the program include: <br />
   * last login time
 * and many more coming in V2!
 
-<br/>
+
 ## How to Run ##
 * Clone or fork the repository containing the source files. <br/>
 * Use the following command to compile the program:
